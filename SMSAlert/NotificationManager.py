@@ -9,7 +9,7 @@
 
 import os
 from twilio.rest import Client
-from Constants import *
+from SMSAlert.Constants import *
 
 class NotificationManager:
 

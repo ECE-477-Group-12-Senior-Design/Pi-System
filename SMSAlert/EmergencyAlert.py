@@ -8,15 +8,17 @@
 #
 
 import os
-from Constants import *
-from NotificationManager import *
+from SMSAlert.Constants import *
+from SMSAlert.NotificationManager import *
 
 
 class EmergencyAlert:
 
+    @staticmethod
     def sendEmergencyAlert() -> None:
         user_name = os.environ[TWILIO_USER_NAME]
-        body = TWILIO_USER_NAME.format(user_name)
+        print('USERNAME:', user_name)
+        body = TWILIO_FORMATTED_EMERGENCY_SMS.format(user_name)
 
         notificationManager = NotificationManager()
         notificationManager.send_message(body)

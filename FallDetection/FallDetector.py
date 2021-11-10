@@ -18,17 +18,17 @@ __date__ = "October 12, 2021"
 
 class FallDetector:
 
-    THRESHOLD_1D_ACCEL_HORIZONTAL = 0  # Used with acceleration data on the x and z axes
-    THRESHOLD_1D_ACCEL_VERTICAL = 0  # Used with acceleration data on the z axis
-    THRESHOLD_2D_ACCEL_HORIZONTAL = 0  # Used with accelertaion data on the xy plane
-    THRESHOLD_2D_ACCEL_VERTICAL = 0  # Used with acceleration data on the xz and yz planes
-    THRESHOLD_3D_ACCEL = 0  # Used with accelearaion data on xyz
+    THRESHOLD_1D_ACCEL_HORIZONTAL = 100  # Used with acceleration data on the x and z axes
+    THRESHOLD_1D_ACCEL_VERTICAL = 100  # Used with acceleration data on the z axis
+    THRESHOLD_2D_ACCEL_HORIZONTAL = 100  # Used with accelertaion data on the xy plane
+    THRESHOLD_2D_ACCEL_VERTICAL = 100  # Used with acceleration data on the xz and yz planes
+    THRESHOLD_3D_ACCEL = 100  # Used with accelearaion data on xyz
 
-    THRESHOLD_1D_GYRO_HORIZONTAL = 0  # Used with gyroscope data on the x and z axes
-    THRESHOLD_1D_GYRO_VERTICAL = 0  # Used with gyroscope data on the z axis
-    THRESHOLD_2D_GYRO_HORIZONTAL = 0  # Used with gyroscope data on the xy plane
-    THRESHOLD_2D_GYRO_VERTICAL = 0  # Used with gyroscope data on the xz and yz planes
-    THRESHOLD_3D_GYRO = 0  # Used with gyroscope data on xyz
+    THRESHOLD_1D_GYRO_HORIZONTAL = 100  # Used with gyroscope data on the x and z axes
+    THRESHOLD_1D_GYRO_VERTICAL = 100  # Used with gyroscope data on the z axis
+    THRESHOLD_2D_GYRO_HORIZONTAL = 100  # Used with gyroscope data on the xy plane
+    THRESHOLD_2D_GYRO_VERTICAL = 100  # Used with gyroscope data on the xz and yz planes
+    THRESHOLD_3D_GYRO = 100  # Used with gyroscope data on xyz
 
     '''
     Description: Given accelerometer and gyroscope sensor data, determine if the data is consistent with a fall.

@@ -11,8 +11,8 @@
 
 import os
 from twilio.rest import Client
-from Constants import *
-from NotificationManager import NotificationManager
+from SMSAlert.Constants import *
+from SMSAlert.NotificationManager import NotificationManager
 
 def setup(username, name, phoneNumber):
     __setUsername(username)

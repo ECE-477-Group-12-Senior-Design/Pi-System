@@ -5,19 +5,19 @@ A Python fall detection algorithm using accelerometer and gyroscope data.
 """
 
 import unittest
-from FallDetector import FallDetector
+from FallDetection.FallDetector import FallDetector
 
 NON_TRIGGER_HORIZONTAL_ACCEL = 0
-TRIGGER_HORIZONTAL_ACCEL = 1
+TRIGGER_HORIZONTAL_ACCEL = 111
 
 NON_TRIGGER_VERTICAL_ACCEL = 0
-TRIGGER_VERTICAL_ACCEL = 1
+TRIGGER_VERTICAL_ACCEL = 111
 
 NON_TRIGGER_HORIZONTAL_GYRO = 0
-TRIGGER_HORIZONTAL_GYRO = 1
+TRIGGER_HORIZONTAL_GYRO = 111
 
 NON_TRIGGER_VERTICAL_GYRO = 0
-TRIGGER_VERTICAL_GYRO = 1
+TRIGGER_VERTICAL_GYRO = 111
 
 class TestStringMethods(unittest.TestCase):
 
