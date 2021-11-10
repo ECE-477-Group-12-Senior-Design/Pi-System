@@ -18,6 +18,9 @@ from SMSAlert.SetupEnvironment import set_environment_variables
 from DEBUG import DEBUG
 
 def mock():
+    if not DEBUG:
+        raise Exception("Main.mock() should not be used unless DEBUG mode enabled!")
+        
     upper_bound = 70
     x_accel = randrange(upper_bound)
     y_accel = randrange(upper_bound)
@@ -28,7 +31,10 @@ def mock():
     return x_accel, y_accel, z_accel, x_gyro, y_gyro, z_gyro
 
 def get_current_values():
-    return mock()
+    if DEBUG:
+        return mock()
+    else:
+        raise Exception("get_current_values not implemented!")
 
 def analyze(values: list):
     x_accel = values[0]
@@ -49,12 +55,10 @@ def main():
         is_fall = analyze(values)
         
         if is_fall:
-            print('\n')
-            print('*** ALERT: THIS IS A FALL! ***', values)
+            print('\n*** ALERT: THIS IS A FALL! ***', values)
             print('*** SENDING AN EMERGENCY ALERT! ***')
             EmergencyAlert.sendEmergencyAlert()
-            print('*** EMERGENCY ALERT SENT! ***')
-            print('\n')
+            print('*** EMERGENCY ALERT SENT! ***\n')
             return
         else:
             print('Not a Fall')  
