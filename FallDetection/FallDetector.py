@@ -7,6 +7,8 @@ A Python fall detection algorithm using accelerometer and gyroscope data.
 from statistics import mean
 import math
 
+from DEBUG import DEBUG
+
 __author__ = "ECE 477 Fall 2021 Team 12"
 __copyright__ = "Copyright 2021, Brace for Impact"
 __credits__ = ["ECE 477 Fall 2021 Team 12"]
@@ -31,9 +33,14 @@ class FallDetector:
     THRESHOLD_2D_GYRO_VERTICAL = 100  # Used with gyroscope data on the xz and yz planes
     THRESHOLD_3D_GYRO = 100  # Used with gyroscope data on xyz
 
+    @staticmethod
+    def logFall(id, value, threshold):
+        if DEBUG:
+            print('{} detected a fall with value={} and threshold={}'.format(id, value, threshold))
+
     # TODO: Add comment
     @staticmethod
-    def determine_if_fall(values) -> bool:
+    def determine_if_fall(values: list) -> bool:
         columns = list(zip(*values))
         x_accels = columns[0]
         y_accels = columns[1]
@@ -60,18 +67,25 @@ class FallDetector:
     def __determine_if_fall_accelerometer(x_accels, y_accels, z_accels) -> bool:
         
         if mean(x_accels) > FallDetector.THRESHOLD_1D_ACCEL_HORIZONTAL:
+            FallDetector.logFall('A1', mean(x_accels), FallDetector.THRESHOLD_1D_ACCEL_HORIZONTAL)
             return True
         elif mean(y_accels) > FallDetector.THRESHOLD_1D_ACCEL_HORIZONTAL:
+            FallDetector.logFall('A2', mean(y_accels), FallDetector.THRESHOLD_1D_ACCEL_HORIZONTAL)
             return True
         elif mean(z_accels) > FallDetector.THRESHOLD_1D_ACCEL_VERTICAL:
+            FallDetector.logFall('A3', mean(z_accels), FallDetector.THRESHOLD_2D_ACCEL_VERTICAL)
             return True
         elif FallDetector.__get_2d_magnitude_average(x_accels, y_accels) > FallDetector.THRESHOLD_2D_ACCEL_HORIZONTAL:
+            FallDetector.logFall('A4', FallDetector.__get_2d_magnitude_average(x_accels, y_accels), FallDetector.THRESHOLD_2D_ACCEL_HORIZONTAL)
             return True
         elif FallDetector.__get_2d_magnitude_average(x_accels, z_accels) > FallDetector.THRESHOLD_2D_ACCEL_VERTICAL:
+            FallDetector.logFall('A5', FallDetector.__get_2d_magnitude_average(x_accels, z_accels), FallDetector.THRESHOLD_2D_ACCEL_VERTICAL)
             return True
         elif FallDetector.__get_2d_magnitude_average(y_accels, z_accels) > FallDetector.THRESHOLD_2D_ACCEL_VERTICAL:
+            FallDetector.logFall('A6', FallDetector.__get_2d_magnitude_average(y_accels, z_accels), FallDetector.THRESHOLD_2D_ACCEL_VERTICAL)
             return True
         elif FallDetector.__get_3d_magnitude_average(x_accels, y_accels, z_accels) > FallDetector.THRESHOLD_3D_ACCEL:
+            FallDetector.logFall('A7', FallDetector.__get_3d_magnitude_average(x_accels, y_accels, z_accels), FallDetector.THRESHOLD_3D_ACCEL)
             return True
 
         return False
@@ -80,33 +94,40 @@ class FallDetector:
     @staticmethod
     def __determine_if_fall_gyroscope(x_gyros, y_gyros, z_gyros) -> bool:
         if mean(x_gyros) > FallDetector.THRESHOLD_1D_GYRO_HORIZONTAL:
+            FallDetector.logFall('G1', mean(x_gyros), FallDetector.THRESHOLD_1D_GYRO_HORIZONTAL)
             return True
         elif mean(y_gyros) > FallDetector.THRESHOLD_1D_GYRO_HORIZONTAL:
+            FallDetector.logFall('G2', mean(y_gyros), FallDetector.THRESHOLD_1D_GYRO_HORIZONTAL)
             return True
         elif mean(z_gyros) > FallDetector.THRESHOLD_1D_GYRO_VERTICAL:
+            FallDetector.logFall('G3', mean(z_gyros), FallDetector.THRESHOLD_1D_GYRO_VERTICAL)
             return True
         elif FallDetector.__get_2d_magnitude_average(x_gyros, y_gyros) > FallDetector.THRESHOLD_2D_GYRO_HORIZONTAL:
+            FallDetector.logFall('G4', FallDetector.__get_2d_magnitude_average(x_gyros, y_gyros), FallDetector.THRESHOLD_2D_GYRO_HORIZONTAL)
             return True
         elif FallDetector.__get_2d_magnitude_average(x_gyros, z_gyros) > FallDetector.THRESHOLD_2D_GYRO_VERTICAL:
+            FallDetector.logFall('G5', FallDetector.__get_2d_magnitude_average(x_gyros, z_gyros), FallDetector.THRESHOLD_2D_GYRO_VERTICAL)
             return True
         elif FallDetector.__get_2d_magnitude_average(y_gyros, z_gyros) > FallDetector.THRESHOLD_2D_GYRO_VERTICAL:
+            FallDetector.logFall('G6', FallDetector.__get_2d_magnitude_average(y_gyros, z_gyros), FallDetector.THRESHOLD_2D_GYRO_VERTICAL)
             return True
         elif FallDetector.__get_3d_magnitude_average(x_gyros, y_gyros, z_gyros) > FallDetector.THRESHOLD_3D_GYRO:
+            FallDetector.logFall('G7', FallDetector.__get_3d_magnitude_average(x_gyros, y_gyros, z_gyros), FallDetector.THRESHOLD_3D_GYRO)
             return True
 
         return False
 
     @staticmethod
     def __get_2d_magnitude_average(first, second):
-        first = map(lambda x: x ** 2, first)
-        second = map(lambda x: x ** 2, second)
-        magnitudes = [math.sqrt(first[i]**2 + second[i]**2) for i in range(len(min(first, second)))]
+        first = list(map(lambda x: x ** 2, first))
+        second = list(map(lambda x: x ** 2, second))
+        magnitudes = [math.sqrt(first[i] + second[i]) for i in range(len(min(first, second)))]
         return mean(magnitudes)
 
     @staticmethod
     def __get_3d_magnitude_average(first, second, third):
-        first = map(lambda x: x ** 2, first)
-        second = map(lambda x: x ** 2, second)
-        third = map(lambda x: x ** 2, third)
-        magnitudes = [math.sqrt(first[i]**2 + second[i]**2 + third[i]**2) for i in range(len(min(first, second, third)))]
+        first = list(map(lambda x: x ** 2, first))
+        second = list(map(lambda x: x ** 2, second))
+        third = list(map(lambda x: x ** 2, third))
+        magnitudes = [math.sqrt(first[i] + second[i] + third[i]) for i in range(len(min(first, second, third)))]
         return mean(magnitudes)
