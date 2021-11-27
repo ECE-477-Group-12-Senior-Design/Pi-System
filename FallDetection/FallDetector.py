@@ -8,6 +8,7 @@ from statistics import mean
 import math
 
 from DEBUG import DEBUG
+WINDOW_SIZE = 50
 
 __author__ = "ECE 477 Fall 2021 Team 12"
 __copyright__ = "Copyright 2021, Brace for Impact"
@@ -21,17 +22,17 @@ __date__ = "October 12, 2021"
 
 class FallDetector:
 
-    THRESHOLD_1D_ACCEL_HORIZONTAL = 100  # Used with acceleration data on the x and z axes
-    THRESHOLD_1D_ACCEL_VERTICAL = 100  # Used with acceleration data on the z axis
-    THRESHOLD_2D_ACCEL_HORIZONTAL = 100  # Used with accelertaion data on the xy plane
-    THRESHOLD_2D_ACCEL_VERTICAL = 100  # Used with acceleration data on the xz and yz planes
-    THRESHOLD_3D_ACCEL = 100  # Used with accelearaion data on xyz
+    THRESHOLD_1D_ACCEL_HORIZONTAL = 1000  # Used with acceleration data on the x and z axes
+    THRESHOLD_1D_ACCEL_VERTICAL = 1000  # Used with acceleration data on the z axis
+    THRESHOLD_2D_ACCEL_HORIZONTAL = 1000  # Used with accelertaion data on the xy plane
+    THRESHOLD_2D_ACCEL_VERTICAL = 1000  # Used with acceleration data on the xz and yz planes
+    THRESHOLD_3D_ACCEL = 1000  # Used with accelearaion data on xyz
 
-    THRESHOLD_1D_GYRO_HORIZONTAL = 100  # Used with gyroscope data on the x and z axes
-    THRESHOLD_1D_GYRO_VERTICAL = 100  # Used with gyroscope data on the z axis
-    THRESHOLD_2D_GYRO_HORIZONTAL = 100  # Used with gyroscope data on the xy plane
-    THRESHOLD_2D_GYRO_VERTICAL = 100  # Used with gyroscope data on the xz and yz planes
-    THRESHOLD_3D_GYRO = 100  # Used with gyroscope data on xyz
+    THRESHOLD_1D_GYRO_HORIZONTAL = 1000  # Used with gyroscope data on the x and z axes
+    THRESHOLD_1D_GYRO_VERTICAL = 1000  # Used with gyroscope data on the z axis
+    THRESHOLD_2D_GYRO_HORIZONTAL = 1000  # Used with gyroscope data on the xy plane
+    THRESHOLD_2D_GYRO_VERTICAL = 1000  # Used with gyroscope data on the xz and yz planes
+    THRESHOLD_3D_GYRO = 1000  # Used with gyroscope data on xyz
 
     @staticmethod
     def logFall(id, value, threshold):
@@ -41,22 +42,30 @@ class FallDetector:
     # TODO: Add comment
     @staticmethod
     def determine_if_fall(values: list) -> bool:
-        columns = list(zip(*values))
-        x_accels = columns[0]
-        y_accels = columns[1]
-        z_accels = columns[2]
 
-        x_gyros = columns[3]
-        y_gyros = columns[4]
-        z_gyros = columns[5]
+        for index in range(0, len(values), WINDOW_SIZE):
+            columns = list(zip(*values[index:index + WINDOW_SIZE]))
 
-        accel_is_fall = FallDetector.__determine_if_fall_accelerometer(x_accels, y_accels, z_accels)
+            x_accels = columns[0]
+            y_accels = columns[1]
+            z_accels = columns[2]
 
-        # Optimization: Can return True early if we know accel has detected a fall
-        if accel_is_fall:
-            return True
+            x_gyros = columns[3]
+            y_gyros = columns[4]
+            z_gyros = columns[5]
 
-        return FallDetector.__determine_if_fall_gyroscope(x_gyros, y_gyros, z_gyros)
+            accel_is_fall = FallDetector.__determine_if_fall_accelerometer(x_accels, y_accels, z_accels)
+
+            # Optimization: Can return True early if we know accel has detected a fall
+            if accel_is_fall:
+                return True
+
+            gyro_is_fall = FallDetector.__determine_if_fall_gyroscope(x_gyros, y_gyros, z_gyros)
+
+            if gyro_is_fall:
+                return True
+        
+        return False
 
     '''
     Description: Given accelerometer sensor data, determine if the data is consistent with a fall.

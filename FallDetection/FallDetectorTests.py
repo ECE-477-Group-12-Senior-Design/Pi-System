@@ -9,18 +9,6 @@ import csv
 import os
 from FallDetector import FallDetector
 
-NON_TRIGGER_HORIZONTAL_ACCEL = 0
-TRIGGER_HORIZONTAL_ACCEL = 111
-
-NON_TRIGGER_VERTICAL_ACCEL = 0
-TRIGGER_VERTICAL_ACCEL = 111
-
-NON_TRIGGER_HORIZONTAL_GYRO = 0
-TRIGGER_HORIZONTAL_GYRO = 111
-
-NON_TRIGGER_VERTICAL_GYRO = 0
-TRIGGER_VERTICAL_GYRO = 111
-
 def fall_filepath(filename):
     dir = os.path.dirname(__file__)
     return os.path.join(dir, f"TestData/Fall/{filename}")
