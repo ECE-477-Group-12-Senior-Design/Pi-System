@@ -15,7 +15,7 @@ from FallDetection.FallDetector import FallDetector
 from SMSAlert.EmergencyAlert import EmergencyAlert
 from random import randrange # TODO: Remove this for real version
 from SMSAlert.SetupEnvironment import set_environment_variables
-from DEBUG import DEBUG
+from FallDetection.DEBUG import DEBUG
 
 WINDOW_SIZE = 50
 

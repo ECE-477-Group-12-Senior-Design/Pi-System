@@ -4,7 +4,7 @@
 
 import os
 from SMSAlert.Constants import *
-from DEBUG import DEBUG
+from FallDetection.DEBUG import DEBUG
 
 def set_environment_variables():
     os.environ[TWILIO_ACCOUNT_SID] = "AC96b41009f986d4e51b628b7e453f1421"
