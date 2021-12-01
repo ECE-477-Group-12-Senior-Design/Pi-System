@@ -84,6 +84,12 @@ class FallDetectorTests(unittest.TestCase):
         is_fall = FallDetector.determine_if_fall(values)
         self.assertTrue(is_fall)
 
+    def test_brett_falls_4_times(self):
+        filepath = fall_filepath('brett_falls_4_times.txt')
+        values = load_test_file(filepath)
+        is_fall = FallDetector.determine_if_fall(values)
+        self.assertTrue(is_fall)
+
     ##############################
     # FALL DATA - CHARLES
     ##############################
@@ -106,6 +112,12 @@ class FallDetectorTests(unittest.TestCase):
         is_fall = FallDetector.determine_if_fall(values)
         self.assertTrue(is_fall)
 
+    def test_charles_falls_many_times(self):
+        filepath = fall_filepath('charles_falling_many_times.txt')
+        values = load_test_file(filepath)
+        is_fall = FallDetector.determine_if_fall(values)
+        self.assertTrue(is_fall)
+
     ##############################
     # FALL DATA - PREM
     ##############################
@@ -122,16 +134,68 @@ class FallDetectorTests(unittest.TestCase):
         is_fall = FallDetector.determine_if_fall(values)
         self.assertTrue(is_fall)
 
+    def test_prem_falls_5_times(self):
+        filepath = fall_filepath('prem_falls_5_times.txt')
+        values = load_test_file(filepath)
+        is_fall = FallDetector.determine_if_fall(values)
+        self.assertTrue(is_fall)
+
     ############################################################
     # NO FALL DATA
     ############################################################
-    
+
+    def test_still(self):
+        filepath = no_fall_filepath('still_on_floor.txt')
+        values = load_test_file(filepath)
+        is_fall = FallDetector.determine_if_fall(values)
+        self.assertFalse(is_fall)
+
     ##############################
     # NO FALL DATA - PREM
     ##############################
 
     def test_prem_walk_1(self):
         filepath = no_fall_filepath('prem_walk_1.txt')
+        values = load_test_file(filepath)
+        is_fall = FallDetector.determine_if_fall(values)
+        self.assertFalse(is_fall)
+
+    ##############################
+    # NO FALL DATA - CHARLES
+    ##############################
+
+    def test_charles_walk(self):
+        filepath = no_fall_filepath('cp_walking.txt')
+        values = load_test_file(filepath)
+        is_fall = FallDetector.determine_if_fall(values)
+        self.assertFalse(is_fall)
+
+    def test_charles_sitting(self):
+        filepath = no_fall_filepath('cp_sitting.txt')
+        values = load_test_file(filepath)
+        is_fall = FallDetector.determine_if_fall(values)
+        self.assertFalse(is_fall)
+
+    def test_charles_standing(self):
+        filepath = no_fall_filepath('cp_standing.txt')
+        values = load_test_file(filepath)
+        is_fall = FallDetector.determine_if_fall(values)
+        self.assertFalse(is_fall)
+
+    def test_charles_sitting_and_standing(self):
+        filepath = no_fall_filepath('cp_sit_stand.txt')
+        values = load_test_file(filepath)
+        is_fall = FallDetector.determine_if_fall(values)
+        self.assertFalse(is_fall)
+
+    def test_charles_ceiling_and_floor(self):
+        filepath = no_fall_filepath('cp_ceiling_to_floor.txt')
+        values = load_test_file(filepath)
+        is_fall = FallDetector.determine_if_fall(values)
+        self.assertFalse(is_fall)
+
+    def test_charles_laying(self):
+        filepath = no_fall_filepath('cp_laying_down.txt')
         values = load_test_file(filepath)
         is_fall = FallDetector.determine_if_fall(values)
         self.assertFalse(is_fall)

@@ -36,7 +36,7 @@ class FallDetector:
 
     @staticmethod
     def logFall(id, value, threshold):
-        if MAIN_DEBUG:
+        if MAIN_DEBUG and LOG_FALL_CONDITION:
             print('{} detected a fall with value={} and threshold={}'.format(id, value, threshold))
 
     # TODO: Add comment
