@@ -15,12 +15,13 @@ from FallDetection.FallDetector import FallDetector
 from SMSAlert.EmergencyAlert import EmergencyAlert
 from random import randrange # TODO: Remove this for real version
 from SMSAlert.SetupEnvironment import set_environment_variables
-from FallDetection.DEBUG import DEBUG
+from Debug.DEBUG import *
+from SMSAlert.BatteryAlert import BatteryAlert
 
 WINDOW_SIZE = 50
 
 def mock():
-    if not DEBUG:
+    if not MAIN_DEBUG:
         raise Exception("Main.mock() should not be used unless DEBUG mode enabled!")
         
     upper_bound = 50
@@ -33,14 +34,20 @@ def mock():
     return [x_accel, y_accel, z_accel, x_gyro, y_gyro, z_gyro]
 
 def get_current_values():
-    if DEBUG:
+    if MAIN_DEBUG:
         return [mock() for _ in range(WINDOW_SIZE)]
     else:
         raise Exception("get_current_values not implemented!")
 
 def main():
-    if DEBUG:
+    if MAIN_DEBUG:
         set_environment_variables()
+
+    if MAIN_DEBUG and TEST_LOW_BATTERY:
+        BatteryAlert.sendLowBatteryAlert()
+    
+    if MAIN_DEBUG and TEST_HIGH_BATTERY:
+        BatteryAlert.sendFullBatteryAlert()
         
     while True:
         sleep(1)

@@ -7,7 +7,7 @@ A Python fall detection algorithm using accelerometer and gyroscope data.
 from statistics import mean
 import math
 
-from DEBUG import DEBUG
+from Debug.DEBUG import *
 WINDOW_SIZE = 50
 
 __author__ = "ECE 477 Fall 2021 Team 12"
@@ -36,7 +36,7 @@ class FallDetector:
 
     @staticmethod
     def logFall(id, value, threshold):
-        if DEBUG:
+        if MAIN_DEBUG:
             print('{} detected a fall with value={} and threshold={}'.format(id, value, threshold))
 
     # TODO: Add comment
