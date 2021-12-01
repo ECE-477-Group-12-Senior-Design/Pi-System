@@ -19,7 +19,7 @@ TWILIO_CONTACT_NAME = 'TWILIO_CONTACT_NAME'
 TWILIO_CONTACT_NUMBER = 'TWILIO_CONTACT_NUMBER'
 
 TWILIO_FORMATTED_TEST_SMS = 'Hi, {}. This is a test message from Brace for Impact.'
-TWILIO_FORMATTED_EMERGENCY_SMS = '*** EMERGENCY: {} has fallen. Please contact them and/or emergency servicces immediately.'
+TWILIO_FORMATTED_EMERGENCY_SMS = '*** EMERGENCY: {} has fallen. Please contact them and/or emergency services immediately.'
 TWILIO_FORMATTED_LOW_BATTERY_SMS = 'Hi, {contact_name}. {user_name}\'s fall detection bracelet is running low on battery. Please have them charge the device as soon as possible.'
 TWILIO_FORMATTED_FULL_BATTERY_SMS = 'Hi, {contact_name}. {user_name}\'s fall detection bracelet is charged. Please have them wear the bracelet again.'
 
