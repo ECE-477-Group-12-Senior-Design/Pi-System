@@ -14,6 +14,7 @@ from twilio.rest import Client
 from SMSAlert.Constants import *
 from SMSAlert.NotificationManager import NotificationManager
 
+
 def setup(username, name, phoneNumber):
     __setUsername(username)
     __setEmergencyPhoneNumber(name, phoneNumber)

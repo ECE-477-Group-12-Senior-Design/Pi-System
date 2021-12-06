@@ -9,13 +9,16 @@ import csv
 import os
 from FallDetector import FallDetector
 
+
 def fall_filepath(filename):
     dir = os.path.dirname(__file__)
     return os.path.join(dir, f"TestData/Fall/{filename}")
 
+
 def no_fall_filepath(filename):
     dir = os.path.dirname(__file__)
     return os.path.join(dir, f"TestData/NoFall/{filename}")
+
 
 def load_test_file(filepath):
     with open(filepath, 'r') as file:
@@ -24,7 +27,7 @@ def load_test_file(filepath):
         values = []
 
         for row in csv_reader:
-            
+
             # Drop lines w/o 3 or 6 values
             # 3 value lines should only be accelerometer
             # 6 value lines should be accelerometer and gyro
@@ -43,6 +46,7 @@ def load_test_file(filepath):
             values.append(row)
 
         return values
+
 
 class FallDetectorTests(unittest.TestCase):
 
@@ -147,7 +151,7 @@ class FallDetectorTests(unittest.TestCase):
     def test_still(self):
         filepath = no_fall_filepath('still_on_floor.txt')
         values = load_test_file(filepath)
-        is_fall = FallDetector.determine_if_fall(values)
+        is_fall = FallDetector.determine_if_fall(values, expects_fall=False)
         self.assertFalse(is_fall)
 
     ##############################
@@ -157,7 +161,7 @@ class FallDetectorTests(unittest.TestCase):
     def test_prem_walk_1(self):
         filepath = no_fall_filepath('prem_walk_1.txt')
         values = load_test_file(filepath)
-        is_fall = FallDetector.determine_if_fall(values)
+        is_fall = FallDetector.determine_if_fall(values, expects_fall=False)
         self.assertFalse(is_fall)
 
     ##############################
@@ -167,37 +171,37 @@ class FallDetectorTests(unittest.TestCase):
     def test_charles_walk(self):
         filepath = no_fall_filepath('cp_walking.txt')
         values = load_test_file(filepath)
-        is_fall = FallDetector.determine_if_fall(values)
+        is_fall = FallDetector.determine_if_fall(values, expects_fall=False)
         self.assertFalse(is_fall)
 
     def test_charles_sitting(self):
         filepath = no_fall_filepath('cp_sitting.txt')
         values = load_test_file(filepath)
-        is_fall = FallDetector.determine_if_fall(values)
+        is_fall = FallDetector.determine_if_fall(values, expects_fall=False)
         self.assertFalse(is_fall)
 
     def test_charles_standing(self):
         filepath = no_fall_filepath('cp_standing.txt')
         values = load_test_file(filepath)
-        is_fall = FallDetector.determine_if_fall(values)
+        is_fall = FallDetector.determine_if_fall(values, expects_fall=False)
         self.assertFalse(is_fall)
 
     def test_charles_sitting_and_standing(self):
         filepath = no_fall_filepath('cp_sit_stand.txt')
         values = load_test_file(filepath)
-        is_fall = FallDetector.determine_if_fall(values)
+        is_fall = FallDetector.determine_if_fall(values, expects_fall=False)
         self.assertFalse(is_fall)
 
     def test_charles_ceiling_and_floor(self):
         filepath = no_fall_filepath('cp_ceiling_to_floor.txt')
         values = load_test_file(filepath)
-        is_fall = FallDetector.determine_if_fall(values)
+        is_fall = FallDetector.determine_if_fall(values, expects_fall=False)
         self.assertFalse(is_fall)
 
     def test_charles_laying(self):
         filepath = no_fall_filepath('cp_laying_down.txt')
         values = load_test_file(filepath)
-        is_fall = FallDetector.determine_if_fall(values)
+        is_fall = FallDetector.determine_if_fall(values, expects_fall=False)
         self.assertFalse(is_fall)
 
 

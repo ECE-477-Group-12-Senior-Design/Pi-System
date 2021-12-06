@@ -11,8 +11,8 @@ import os
 from twilio.rest import Client
 from SMSAlert.Constants import *
 
-class NotificationManager:
 
+class NotificationManager:
     __client: Client
 
     def __init__(self) -> None:
@@ -29,5 +29,3 @@ class NotificationManager:
 
         message = self.__client.messages.create(body=message, from_=_from, to=_to)
         return message.sid
-
-
