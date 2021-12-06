@@ -12,10 +12,11 @@ from Setup import setup
 from EmergencyAlert import *
 from SetupEnvironment import *
 
+
 def main():
     set_environment_variables()
     launch_start(setup)
 
+
 if __name__ == '__main__':
     main()
-    

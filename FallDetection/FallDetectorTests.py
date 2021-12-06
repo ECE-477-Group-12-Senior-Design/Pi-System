@@ -9,13 +9,16 @@ import csv
 import os
 from FallDetector import FallDetector
 
+
 def fall_filepath(filename):
     dir = os.path.dirname(__file__)
     return os.path.join(dir, f"TestData/Fall/{filename}")
 
+
 def no_fall_filepath(filename):
     dir = os.path.dirname(__file__)
     return os.path.join(dir, f"TestData/NoFall/{filename}")
+
 
 def load_test_file(filepath):
     with open(filepath, 'r') as file:
@@ -24,7 +27,7 @@ def load_test_file(filepath):
         values = []
 
         for row in csv_reader:
-            
+
             # Drop lines w/o 3 or 6 values
             # 3 value lines should only be accelerometer
             # 6 value lines should be accelerometer and gyro
@@ -43,6 +46,7 @@ def load_test_file(filepath):
             values.append(row)
 
         return values
+
 
 class FallDetectorTests(unittest.TestCase):
 
