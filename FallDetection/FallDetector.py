@@ -24,9 +24,9 @@ class FallDetector:
 
     THRESHOLD_1D_ACCEL_HORIZONTAL = 1500  # Used with acceleration data on the x and z axes
     THRESHOLD_1D_ACCEL_VERTICAL = 1500  # Used with acceleration data on the z axis
-    THRESHOLD_2D_ACCEL_HORIZONTAL = 1300  # Used with accelertaion data on the xy plane
+    THRESHOLD_2D_ACCEL_HORIZONTAL = 1355  # Used with acceleration data on the xy plane
     THRESHOLD_2D_ACCEL_VERTICAL = 1300  # Used with acceleration data on the xz and yz planes
-    THRESHOLD_3D_ACCEL = 1220  # Used with accelearaion data on xyz
+    THRESHOLD_3D_ACCEL = 1220  # Used with acceleration data on xyz
 
     THRESHOLD_1D_GYRO_HORIZONTAL = 157220  # Used with gyroscope data on the x and z axes
     THRESHOLD_1D_GYRO_VERTICAL = 154683  # Used with gyroscope data on the z axis
