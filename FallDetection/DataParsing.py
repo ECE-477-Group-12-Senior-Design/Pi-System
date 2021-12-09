@@ -35,9 +35,9 @@ def parse_data(lsb, msb):
 
         # handling 2s complements
         if val > 32766:
-            res.append((np.invert(np.array(val, dtype=np.uint16)) + 1) * -1 * 0.122 / 1000)
+            res.append((np.invert(np.array(val, dtype=np.uint16)) + 1) * -1)
         else:
-            res.append(val * 0.122 / 1000)
+            res.append(val)
 
     return res
 

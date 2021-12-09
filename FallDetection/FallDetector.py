@@ -6,6 +6,8 @@ A Python fall detection algorithm using accelerometer and gyroscope data.
 
 from statistics import mean
 import math
+import numpy as np
+import datetime
 
 __author__ = "ECE 477 Fall 2021 Team 12"
 __copyright__ = "Copyright 2021, Brace for Impact"
@@ -20,11 +22,11 @@ __date__ = "October 12, 2021"
 # CONSTANTS
 ##############################
 
-WINDOW_SIZE = 25
-WINDOW_SLIDE_OFFSET = 1
+WINDOW_SIZE = 15
+WINDOW_SLIDE_OFFSET = 3
 
 # The force
-ONE_G_FORCE = 1000 / 0.122
+ONE_G_FORCE = 1000 / 0.117
 
 
 ##############################
@@ -36,9 +38,9 @@ def determine_smallest_dimension_length(values: list) -> int:
     # Get the length of each dimension to ensure that the minimum length is used for processing
     #   - This avoids an index out of bounds error
     assert len(values) == 3
-    x_dim_len = values[0]
-    y_dim_len = values[1]
-    z_dim_len = values[2]
+    x_dim_len = len(values[0])
+    y_dim_len = len(values[1])
+    z_dim_len = len(values[2])
 
     # Get the length of the dimension with the smallest length
     # Using the minimum value avoids index out of range errors
@@ -47,8 +49,8 @@ def determine_smallest_dimension_length(values: list) -> int:
     # For debugging purposes, check that each dimension has the same length
     #   - Each dimension should be the same length because x, y, and z are collected at the same time
     # When lists are of equal length, the minimum length and the maximum length should be equal
-    maximum_length = max([x_dim_len, y_dim_len, z_dim_len])
-    assert minimum_length == maximum_length
+    # maximum_length = max([x_dim_len, y_dim_len, z_dim_len])
+    # assert minimum_length == maximum_length
 
     return minimum_length
 
@@ -203,7 +205,7 @@ def determine_if_fall(values: list) -> bool:
 
     # Map the list from 1-dimensional force value lists to 3-dimensional force values
     mapped_force_values = map_1d_values_to_3d_values(transformed_values)
-
+    
     # Get window averages
     sum_previous_window = None
     sum_previously_removed_values = None
@@ -212,13 +214,17 @@ def determine_if_fall(values: list) -> bool:
     # Remember if > 1 G Force detected
     did_detect_free_fall = False
     did_detect_impact = False
+    
+    window_averages = []
+    dt = (datetime.datetime.now())
 
     # Analyze the force values for each window
     for window in window_generator(mapped_force_values, WINDOW_SIZE, WINDOW_SLIDE_OFFSET):
 
         window_average = get_window_average(window, sum_previous_window, sum_previously_removed_values, WINDOW_SLIDE_OFFSET)
+        window_averages.append(window_average)
 
-        sum_previous_window = window_average
+        sum_previous_window = window_average * WINDOW_SIZE
         sum_previously_removed_values = sum(window[:WINDOW_SLIDE_OFFSET])
 
         # Check for free fall in given window
@@ -226,13 +232,16 @@ def determine_if_fall(values: list) -> bool:
             did_detect_free_fall = True
         # Check for impact in given window
         # Assumes that impact will be >= 2g
-        elif window_average >= 2 * ONE_G_FORCE:
+        elif window_average >= 1.75 * ONE_G_FORCE:
             did_detect_impact = True
 
         # Handle a detected fall
         if did_detect_free_fall and did_detect_impact:
             log_fall(window)
+            np.savetxt(f"fall_data_test_{str(dt)}.csv", np.asarray(window_averages), delimiter='\n', fmt='%.8f')
             return True
 
     # No fall detected
+    print("No fall detected!")
+    np.savetxt(f"no_fall_data_test_{str(dt)}.csv", np.asarray(window_averages), delimiter='\n', fmt='%.8f')
     return False
