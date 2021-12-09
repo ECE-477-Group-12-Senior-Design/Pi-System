@@ -6,9 +6,8 @@ A Python fall detection algorithm using accelerometer and gyroscope data.
 
 from statistics import mean
 import math
-
-from Debug.DEBUG import *
-WINDOW_SIZE = 50
+import numpy as np
+import datetime
 
 __author__ = "ECE 477 Fall 2021 Team 12"
 __copyright__ = "Copyright 2021, Brace for Impact"
@@ -19,144 +18,230 @@ __email__ = "cpisciot@purdue.edu"
 __status__ = "Development"
 __date__ = "October 12, 2021"
 
+##############################
+# CONSTANTS
+##############################
 
-class FallDetector:
+WINDOW_SIZE = 15
+WINDOW_SLIDE_OFFSET = 3
 
-    THRESHOLD_1D_ACCEL_HORIZONTAL = 1500  # Used with acceleration data on the x and z axes
-    THRESHOLD_1D_ACCEL_VERTICAL = 1500  # Used with acceleration data on the z axis
-    THRESHOLD_2D_ACCEL_HORIZONTAL = 1355  # Used with acceleration data on the xy plane
-    THRESHOLD_2D_ACCEL_VERTICAL = 1300  # Used with acceleration data on the xz and yz planes
-    THRESHOLD_3D_ACCEL = 1220  # Used with acceleration data on xyz
+# The force
+ONE_G_FORCE = 1000 / 0.117
 
-    THRESHOLD_1D_GYRO_HORIZONTAL = 157220  # Used with gyroscope data on the x and z axes
-    THRESHOLD_1D_GYRO_VERTICAL = 154683  # Used with gyroscope data on the z axis
-    THRESHOLD_2D_GYRO_HORIZONTAL = 184989  # Used with gyroscope data on the xy plane
-    THRESHOLD_2D_GYRO_VERTICAL = 194315  # Used with gyroscope data on the xz and yz planes
-    THRESHOLD_3D_GYRO = 227322  # Used with gyroscope data on xyz
 
-    @staticmethod
-    def __logFall(id, value, threshold):
-        if MAIN_DEBUG:
-            print('{} detected a fall with value={} and threshold={}'.format(id, value, threshold))
+##############################
+# HELPER FUNCTIONS
+##############################
 
-    # TODO: Add comment
-    @staticmethod
-    def determine_if_fall(values: list, expects_fall=True) -> bool:
+def determine_smallest_dimension_length(values: list) -> int:
+    # There should be 3 elements in `values`: x_forces, y_forces, and z_forces
+    # Get the length of each dimension to ensure that the minimum length is used for processing
+    #   - This avoids an index out of bounds error
+    assert len(values) == 3
+    x_dim_len = len(values[0])
+    y_dim_len = len(values[1])
+    z_dim_len = len(values[2])
 
-        for index in range(0, len(values), WINDOW_SIZE):
-            columns = list(zip(*values[index:index + WINDOW_SIZE]))
+    # Get the length of the dimension with the smallest length
+    # Using the minimum value avoids index out of range errors
+    minimum_length = min([x_dim_len, y_dim_len, z_dim_len])
 
-            x_accels = columns[0]
-            y_accels = columns[1]
-            z_accels = columns[2]
+    # For debugging purposes, check that each dimension has the same length
+    #   - Each dimension should be the same length because x, y, and z are collected at the same time
+    # When lists are of equal length, the minimum length and the maximum length should be equal
+    # maximum_length = max([x_dim_len, y_dim_len, z_dim_len])
+    # assert minimum_length == maximum_length
 
-            x_gyros = columns[3]
-            y_gyros = columns[4]
-            z_gyros = columns[5]
+    return minimum_length
 
-            # DEBUG flag checks if should skip accel checking
-            if TEST_CHECK_ACCEL:
-                accel_is_fall = FallDetector.__determine_if_fall_accelerometer(x_accels, y_accels, z_accels, expects_fall)
 
-                # Optimization: Can return True early if we know accel has detected a fall
-                if accel_is_fall:
-                    return True
+def transform_entries(values: list, length: int) -> list:
+    """
+    The values are received in the following manner:
 
-            # This will skip gyro checking while debugging
-            if not TEST_CHECK_GYRO:
-                continue
+    values = [
+      [ x1 , x2 , x3 , x4 , ... , xa ],   * where a is x_dim_len
+      [ y1 , y2 , y3 , y4 , ... , yb ],   * where b is y_dim_len
+      [ z1 , z2 , z3 , z4 , ... , zc ],   * where c is z_dim_len
+    ]
 
-            gyro_is_fall = FallDetector.__determine_if_fall_gyroscope(x_gyros, y_gyros, z_gyros, expects_fall)
 
-            if gyro_is_fall:
-                return True
-        
-        return False
+    Transform the values to the following structure for fall detection analysis:
 
-    '''
-    Description: Given accelerometer sensor data, determine if the data is consistent with a fall.
-    Parameters: x, y, and z values for the accelerometer at a given time instant.
-    Returns: A Boolean. If a fall, returns True. If not a fall, returns False.
-    '''
-    @staticmethod
-    def __determine_if_fall_accelerometer(x_accels, y_accels, z_accels, expects_fall=True) -> bool:
-        
-        if mean(x_accels) > FallDetector.THRESHOLD_1D_ACCEL_HORIZONTAL:
-            if not expects_fall:
-                FallDetector.__logFall('A1 THRESHOLD_1D_ACCEL_HORIZONTAL', mean(x_accels), FallDetector.THRESHOLD_1D_ACCEL_HORIZONTAL)
+    transformed_values = [
+      [ x1 , y1 , z1 ],
+      [ x2 , y2 , z2 ],
+      [ x3 , y3 , z3 ],
+      [ .. , .. , .. ],
+      [ xn , yn , zn ],   * where n is `length`
+    ]
+    """
+    return list(zip(*values[:length]))
+
+
+def get_3d_magnitude(dimension_values: list) -> float:
+    """
+    This function gets the 3-d magnitude of x, y, and z values
+
+    Parameters:
+      - dimension_values: list
+
+        dimension_values = [ x_value , y_value , z_value ]
+          - x_value: The force experienced in the x-dimension
+          - y_value: The force experienced in the y-dimension
+          - z_value: The force experienced in the z-dimension
+
+    Returns:
+      - f_value: The 3-dimensional force calculated with the 3D magnitude formula
+
+    3D Magnitude Formula:
+      Force = √ (x**2) + (y**2) + (z**2)
+    """
+
+    # There should be 3 dimension values: x, y, and z
+    assert len(dimension_values) == 3
+
+    x_squared = dimension_values[0] ** 2
+    y_squared = dimension_values[1] ** 2
+    z_squared = dimension_values[2] ** 2
+    return math.sqrt(x_squared + y_squared + z_squared)
+
+
+def map_1d_values_to_3d_values(individual_values) -> list:
+    """
+    Map the list from individual force values to 3-dimensional force values
+
+    Currently, the list contains the individual x, y, and z forces experienced by the sensor as follows:
+
+        individual_values = [
+          [ x1 , y1 , z1 ],
+          [ x2 , y2 , z2 ],
+          [ x3 , y3 , z3 ],
+          [ .. , .. , .. ],
+          [ xn , yn , zn ]
+        ]
+
+    Use a mapping function to convert each entry from individual dimensions to 3-dimensional values:
+
+        mappedForceValues = [ f1 , f2 , f3 , f4 , f5 , ... , fn ]
+    """
+    return list(map(get_3d_magnitude, individual_values))
+
+
+def window_generator(values: list, window_size: int, slide_offset: int = 1):
+    """
+    Creates a generator, yielding a slice of the values with a sliding window of length `window_size`
+
+    # Given:
+    #   values = [ f1 , f2 , f3 , f4 , f5 , f6 , f7 , f8 , f9 , ... , fn ]
+    #   window_size = 5
+    #   slide_offset = 1
+    #
+    # Iteration 1:
+    #   Yields: [ f1 , f2 , f3 , f4 , f5 ]
+    #
+    # Iteration 2:
+    #   Yields: [ f2 , f3 , f4 , f5 , f6 ]
+    #
+    # Iteration 3:
+    #   Yields: [ f3 , f4 , f5 , f6 , f7 ]
+    #
+    # ...
+    #
+    # Iteration n - window_size (Final Iteration):
+    #   Yields: [ fn-4 , fn-3 , fn-2 , fn-1 , fn ]
+
+    :param values: The 3-dimensional force values.
+    :param window_size: The desired window size for analysis
+    :param slide_offset: The desired positive offset from a window start index to the next window start index.
+    :return: A generator for each sliding window
+    """
+
+    # The number of entries in the values list
+    len_values = len(values)
+
+    # Yield
+    for start_index in range(0, len_values - window_size, slide_offset):
+        yield values[start_index:start_index+window_size]
+
+
+def log_fall(window):
+    average_force = mean(window)
+    print(f"A fall is detected with average value: {average_force}")
+
+
+##############################
+# FALL Detection
+##############################
+
+def get_window_average(window_values: list, sum_previous_window, sum_previously_removed_values, slide_offset: int) -> float:
+
+    if (sum_previous_window is not None) and (sum_previously_removed_values is not None):
+        # Get sum of new elements after slide
+        new_values_sum = sum(window_values[-slide_offset:])
+
+        # Calculate new sum:
+        # Add the sum of the common elements from the previous window and the current window
+        # Subtract the sum of the elements removed from the previous window
+        # Add the sum of the elements added in the current window
+        # Find the new mean
+        return (sum_previous_window + new_values_sum - sum_previously_removed_values) / WINDOW_SIZE
+
+    return mean(window_values)
+
+
+def check_window_for_fall(window_average) -> bool:
+    return window_average
+    return False
+
+
+def determine_if_fall(values: list) -> bool:
+
+    # Determine minimum length
+    smallest_dim_len = determine_smallest_dimension_length(values)
+
+    # Transform the list from dimension entries to time entries
+    transformed_values = transform_entries(values, smallest_dim_len)
+
+    # Map the list from 1-dimensional force value lists to 3-dimensional force values
+    mapped_force_values = map_1d_values_to_3d_values(transformed_values)
+    
+    # Get window averages
+    sum_previous_window = None
+    sum_previously_removed_values = None
+
+    # Remember if < 1 G Force detected
+    # Remember if > 1 G Force detected
+    did_detect_free_fall = False
+    did_detect_impact = False
+    
+    window_averages = []
+    dt = (datetime.datetime.now())
+
+    # Analyze the force values for each window
+    for window in window_generator(mapped_force_values, WINDOW_SIZE, WINDOW_SLIDE_OFFSET):
+
+        window_average = get_window_average(window, sum_previous_window, sum_previously_removed_values, WINDOW_SLIDE_OFFSET)
+        window_averages.append(window_average)
+
+        sum_previous_window = window_average * WINDOW_SIZE
+        sum_previously_removed_values = sum(window[:WINDOW_SLIDE_OFFSET])
+
+        # Check for free fall in given window
+        if window_average < ONE_G_FORCE:
+            did_detect_free_fall = True
+        # Check for impact in given window
+        # Assumes that impact will be >= 2g
+        elif window_average >= 1.75 * ONE_G_FORCE:
+            did_detect_impact = True
+
+        # Handle a detected fall
+        if did_detect_free_fall and did_detect_impact:
+            log_fall(window)
+            np.savetxt(f"fall_data_test_{str(dt)}.csv", np.asarray(window_averages), delimiter='\n', fmt='%.8f')
             return True
-        elif mean(y_accels) > FallDetector.THRESHOLD_1D_ACCEL_HORIZONTAL:
-            if not expects_fall:
-                FallDetector.__logFall('A2 THRESHOLD_1D_ACCEL_HORIZONTAL', mean(y_accels), FallDetector.THRESHOLD_1D_ACCEL_HORIZONTAL)
-            return True
-        elif mean(z_accels) > FallDetector.THRESHOLD_1D_ACCEL_VERTICAL:
-            if not expects_fall:
-                FallDetector.__logFall('A3 THRESHOLD_1D_ACCEL_VERTICAL', mean(z_accels), FallDetector.THRESHOLD_1D_ACCEL_VERTICAL)
-            return True
-        elif FallDetector.__get_2d_magnitude_average(x_accels, y_accels) > FallDetector.THRESHOLD_2D_ACCEL_HORIZONTAL:
-            if not expects_fall:
-                FallDetector.__logFall('A4 THRESHOLD_2D_ACCEL_HORIZONTAL', FallDetector.__get_2d_magnitude_average(x_accels, y_accels), FallDetector.THRESHOLD_2D_ACCEL_HORIZONTAL)
-            return True
-        elif FallDetector.__get_2d_magnitude_average(x_accels, z_accels) > FallDetector.THRESHOLD_2D_ACCEL_VERTICAL:
-            if not expects_fall:
-                FallDetector.__logFall('A5 THRESHOLD_2D_ACCEL_VERTICAL', FallDetector.__get_2d_magnitude_average(x_accels, z_accels), FallDetector.THRESHOLD_2D_ACCEL_VERTICAL)
-            return True
-        elif FallDetector.__get_2d_magnitude_average(y_accels, z_accels) > FallDetector.THRESHOLD_2D_ACCEL_VERTICAL:
-            if not expects_fall:
-                FallDetector.__logFall('A6 THRESHOLD_2D_ACCEL_VERTICAL', FallDetector.__get_2d_magnitude_average(y_accels, z_accels), FallDetector.THRESHOLD_2D_ACCEL_VERTICAL)
-            return True
-        elif FallDetector.__get_3d_magnitude_average(x_accels, y_accels, z_accels) > FallDetector.THRESHOLD_3D_ACCEL:
-            if not expects_fall:
-                FallDetector.__logFall('A7 THRESHOLD_3D_ACCEL', FallDetector.__get_3d_magnitude_average(x_accels, y_accels, z_accels), FallDetector.THRESHOLD_3D_ACCEL)
-            return True
 
-        return False
-
-    # TODO: Add doc comment
-    @staticmethod
-    def __determine_if_fall_gyroscope(x_gyros, y_gyros, z_gyros, expects_fall=True) -> bool:
-        if mean(x_gyros) > FallDetector.THRESHOLD_1D_GYRO_HORIZONTAL:
-            if not expects_fall:
-                FallDetector.__logFall('G1 THRESHOLD_1D_GYRO_HORIZONTAL', mean(x_gyros), FallDetector.THRESHOLD_1D_GYRO_HORIZONTAL)
-            return True
-        elif mean(y_gyros) > FallDetector.THRESHOLD_1D_GYRO_HORIZONTAL:
-            if not expects_fall:
-                FallDetector.__logFall('G2 THRESHOLD_1D_GYRO_HORIZONTAL', mean(y_gyros), FallDetector.THRESHOLD_1D_GYRO_HORIZONTAL)
-            return True
-        elif mean(z_gyros) > FallDetector.THRESHOLD_1D_GYRO_VERTICAL:
-            if not expects_fall:
-                FallDetector.__logFall('G3 THRESHOLD_1D_GYRO_VERTICAL', mean(z_gyros), FallDetector.THRESHOLD_1D_GYRO_VERTICAL)
-            return True
-        elif FallDetector.__get_2d_magnitude_average(x_gyros, y_gyros) > FallDetector.THRESHOLD_2D_GYRO_HORIZONTAL:
-            if not expects_fall:
-                FallDetector.__logFall('G4 THRESHOLD_2D_GYRO_HORIZONTAL', FallDetector.__get_2d_magnitude_average(x_gyros, y_gyros), FallDetector.THRESHOLD_2D_GYRO_HORIZONTAL)
-            return True
-        elif FallDetector.__get_2d_magnitude_average(x_gyros, z_gyros) > FallDetector.THRESHOLD_2D_GYRO_VERTICAL:
-            if not expects_fall:
-                FallDetector.__logFall('G5 THRESHOLD_2D_GYRO_VERTICAL', FallDetector.__get_2d_magnitude_average(x_gyros, z_gyros), FallDetector.THRESHOLD_2D_GYRO_VERTICAL)
-            return True
-        elif FallDetector.__get_2d_magnitude_average(y_gyros, z_gyros) > FallDetector.THRESHOLD_2D_GYRO_VERTICAL:
-            if not expects_fall:
-                FallDetector.__logFall('G6 THRESHOLD_2D_GYRO_VERTICAL', FallDetector.__get_2d_magnitude_average(y_gyros, z_gyros), FallDetector.THRESHOLD_2D_GYRO_VERTICAL)
-            return True
-        elif FallDetector.__get_3d_magnitude_average(x_gyros, y_gyros, z_gyros) > FallDetector.THRESHOLD_3D_GYRO:
-            if not expects_fall:
-                FallDetector.__logFall('G7 THRESHOLD_3D_GYRO', FallDetector.__get_3d_magnitude_average(x_gyros, y_gyros, z_gyros), FallDetector.THRESHOLD_3D_GYRO)
-            return True
-
-        return False
-
-    @staticmethod
-    def __get_2d_magnitude_average(first, second):
-        first = list(map(lambda x: x ** 2, first))
-        second = list(map(lambda x: x ** 2, second))
-        magnitudes = [math.sqrt(first[i] + second[i]) for i in range(len(min(first, second)))]
-        return mean(magnitudes)
-
-    @staticmethod
-    def __get_3d_magnitude_average(first, second, third):
-        first = list(map(lambda x: x ** 2, first))
-        second = list(map(lambda x: x ** 2, second))
-        third = list(map(lambda x: x ** 2, third))
-        magnitudes = [math.sqrt(first[i] + second[i] + third[i]) for i in range(len(min(first, second, third)))]
-        return mean(magnitudes)
+    # No fall detected
+    print("No fall detected!")
+    np.savetxt(f"no_fall_data_test_{str(dt)}.csv", np.asarray(window_averages), delimiter='\n', fmt='%.8f')
+    return False
