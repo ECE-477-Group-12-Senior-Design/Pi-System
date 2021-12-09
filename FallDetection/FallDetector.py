@@ -7,10 +7,6 @@ A Python fall detection algorithm using accelerometer and gyroscope data.
 from statistics import mean
 import math
 
-from Debug.DEBUG import *
-WINDOW_SIZE = 50
-WINDOW_SLIDE_OFFSET = 1
-
 __author__ = "ECE 477 Fall 2021 Team 12"
 __copyright__ = "Copyright 2021, Brace for Impact"
 __credits__ = ["ECE 477 Fall 2021 Team 12"]
@@ -23,6 +19,9 @@ __date__ = "October 12, 2021"
 ##############################
 # CONSTANTS
 ##############################
+
+WINDOW_SIZE = 50
+WINDOW_SLIDE_OFFSET = 1
 
 THRESHOLD_3D_ACCEL = 1000  # Used with acceleration data on xyz
 
