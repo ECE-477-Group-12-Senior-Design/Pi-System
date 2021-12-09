@@ -20,10 +20,11 @@ __date__ = "October 12, 2021"
 # CONSTANTS
 ##############################
 
-WINDOW_SIZE = 50
+WINDOW_SIZE = 25
 WINDOW_SLIDE_OFFSET = 1
 
-THRESHOLD_3D_ACCEL = 1000  # Used with acceleration data on xyz
+# The force
+ONE_G_FORCE = 1000 / 0.122
 
 
 ##############################
@@ -34,7 +35,7 @@ def determine_smallest_dimension_length(values: list) -> int:
     # There should be 3 elements in `values`: x_forces, y_forces, and z_forces
     # Get the length of each dimension to ensure that the minimum length is used for processing
     #   - This avoids an index out of bounds error
-    assert  len(values) == 3
+    assert len(values) == 3
     x_dim_len = values[0]
     y_dim_len = values[1]
     z_dim_len = values[2]
@@ -132,7 +133,7 @@ def window_generator(values: list, window_size: int, slide_offset: int = 1):
     # Given:
     #   values = [ f1 , f2 , f3 , f4 , f5 , f6 , f7 , f8 , f9 , ... , fn ]
     #   window_size = 5
-    #   window_slide = 1
+    #   slide_offset = 1
     #
     # Iteration 1:
     #   Yields: [ f1 , f2 , f3 , f4 , f5 ]
@@ -171,8 +172,24 @@ def log_fall(window):
 # FALL Detection
 ##############################
 
-def check_window_for_fall(window_values: list) -> bool:
-    # TODO: Analyze a window for a fall
+def get_window_average(window_values: list, sum_previous_window, sum_previously_removed_values, slide_offset: int) -> float:
+
+    if (sum_previous_window is not None) and (sum_previously_removed_values is not None):
+        # Get sum of new elements after slide
+        new_values_sum = sum(window_values[-slide_offset:])
+
+        # Calculate new sum:
+        # Add the sum of the common elements from the previous window and the current window
+        # Subtract the sum of the elements removed from the previous window
+        # Add the sum of the elements added in the current window
+        # Find the new mean
+        return (sum_previous_window + new_values_sum - sum_previously_removed_values) / WINDOW_SIZE
+
+    return mean(window_values)
+
+
+def check_window_for_fall(window_average) -> bool:
+    return window_average
     return False
 
 
@@ -187,14 +204,33 @@ def determine_if_fall(values: list) -> bool:
     # Map the list from 1-dimensional force value lists to 3-dimensional force values
     mapped_force_values = map_1d_values_to_3d_values(transformed_values)
 
+    # Get window averages
+    sum_previous_window = None
+    sum_previously_removed_values = None
+
+    # Remember if < 1 G Force detected
+    # Remember if > 1 G Force detected
+    did_detect_free_fall = False
+    did_detect_impact = False
+
     # Analyze the force values for each window
     for window in window_generator(mapped_force_values, WINDOW_SIZE, WINDOW_SLIDE_OFFSET):
 
-        # Check for fall in given window
-        is_fall_detected = check_window_for_fall(window)
+        window_average = get_window_average(window, sum_previous_window, sum_previously_removed_values, WINDOW_SLIDE_OFFSET)
+
+        sum_previous_window = window_average
+        sum_previously_removed_values = sum(window[:WINDOW_SLIDE_OFFSET])
+
+        # Check for free fall in given window
+        if window_average < ONE_G_FORCE:
+            did_detect_free_fall = True
+        # Check for impact in given window
+        # Assumes that impact will be >= 2g
+        elif window_average >= 2 * ONE_G_FORCE:
+            did_detect_impact = True
 
         # Handle a detected fall
-        if is_fall_detected:
+        if did_detect_free_fall and did_detect_impact:
             log_fall(window)
             return True
 
