@@ -11,7 +11,7 @@
 
 from math import isfinite
 from time import sleep
-from FallDetection.FallDetector import FallDetector
+from FallDetection.FallDetector import determine_if_fall
 from SMSAlert.EmergencyAlert import EmergencyAlert
 from random import randrange  # TODO: Remove this for real version
 from SMSAlert.SetupEnvironment import set_environment_variables
@@ -68,8 +68,8 @@ class PiBluetoothDelegate(DefaultDelegate):
             parse.plot_data(all_axes[1], 'y_accel.png')
             parse.plot_data(all_axes[2], str(str(dt)[22:]) + 'z_accel.png')
 
-            combined_x_y_z = [all_axes[0], all_axes[1], all_axes[2]] # TODO: Only accel
-            result = FallDetector.determine_if_fall(combined_x_y_z)
+            combined_x_y_z = [all_axes[0], all_axes[1], all_axes[2]]    # TODO: Only accel
+            result = determine_if_fall(combined_x_y_z)
             print(f"FALL?: {result}")
 
             np.savetxt("data_test.csv", all_axes, delimiter=',', fmt='%.8f')
