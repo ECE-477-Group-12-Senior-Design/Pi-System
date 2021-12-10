@@ -24,6 +24,7 @@ import bluepy
 import datetime
 import numpy as np
 import math
+from SMSAlert.BluetoothAlert import BluetoothAlert
 
 
 class PiBluetoothDelegate(DefaultDelegate):
@@ -99,7 +100,7 @@ class PiSystem:
     SERVICE_UUID = '0000f00d-1212-efde-1523-785fef13d123'
     CHARACTERISTIC_UUID = '0000beef-1212-efde-1523-785fef13d123'
     MICROCONTROLLER_MAC = "f9:55:32:07:a4:9e"
-    MICROCONTROLLER_MAC = "c6:a6:ac:8f:47:b1"
+    # MICROCONTROLLER_MAC = "c6:a6:ac:8f:47:b1"
     outputData = []
 
     peripheral: Peripheral
@@ -116,36 +117,33 @@ class PiSystem:
         if MAIN_DEBUG and TEST_HIGH_BATTERY:
             BatteryAlert.sendFullBatteryAlert()
         
-        try:
+        def connectDevice():
             self.peripheral = Peripheral(self.MICROCONTROLLER_MAC, "random")
             delegate = PiBluetoothDelegate(handle_fall=EmergencyAlert.sendEmergencyAlert)
             self.peripheral.setDelegate(delegate)
             print("Device Connected")
-            
+        
+        def subscribeToNotifications():
             self.svc = self.peripheral.getServiceByUUID(self.SERVICE_UUID)
             self.ch = self.svc.getCharacteristics()[0]
             self.peripheral.writeCharacteristic(int(self.ch.valHandle) + 1, b'\x01\x00')
             print("Subscribed to notifications")
-        except bluepy.btle.BTLEDisconnectError as e:
-            print(e)
-
+        
         while True:
+            
             try:
+                connectDevice()
+                subscribeToNotifications()
+                BluetoothAlert.sendConnectedAlert()
+                
                 if self.peripheral.waitForNotifications(1):
-                    # handleNotification() was called
+                    # handleNotification() is called
                     continue
             except bluepy.btle.BTLEDisconnectError as e:
-                print(e)
-                print("ERROR OCCURED DISCONNECT")
-                self.peripheral = Peripheral(self.MICROCONTROLLER_MAC, "random")
-                delegate = PiBluetoothDelegate(handle_fall=EmergencyAlert.sendEmergencyAlert)
-                self.peripheral.setDelegate(delegate)
-                print("Device Connected")
-                
-                self.svc = self.peripheral.getServiceByUUID(self.SERVICE_UUID)
-                self.ch = self.svc.getCharacteristics()[0]
-                self.peripheral.writeCharacteristic(int(self.ch.valHandle) + 1, b'\x01\x00')
-                print("Subscribed to notifications")
+                print("ERROR: " + str(e) + " ...Attempting to reconnect")
+                BluetoothAlert.sendDisconnectedAlert()
+            except Exception as err:
+                print(err)        
 
 if __name__ == '__main__':
     PiSystem().main()
