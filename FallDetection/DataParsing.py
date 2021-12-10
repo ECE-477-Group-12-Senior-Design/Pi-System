@@ -9,7 +9,7 @@ Acceleration is set at +/- 4g (can be changed if necessary)
 
 import numpy as np
 import matplotlib.pyplot as plt
-from SMSAlert import BatteryAlert
+from SMSAlert.BatteryAlert import BatteryAlert
 
 
 # generates np array for easy parsing
@@ -70,7 +70,7 @@ def detect_junk(spaced_str):
     elif spaced_str.count('0b') > 3:
         # print("B GLITCH")
         return 1
-    elif spaced_str.count('0a') == 2:
+    elif spaced_str.count('0a') == 0:
         # print("NO GLITCH")
         return 0
     elif spaced_str.count('0b') == 2:
@@ -80,7 +80,7 @@ def detect_junk(spaced_str):
 
 
 def detect_battery(spaced_str):
-    if spaced_str.count('0c') == 8 and spaced_str.count('0b') == 10:
+    if spaced_str.count('0c') == 9 and spaced_str.count('0b') == 10:
         return 1
     else:
         return 0
@@ -96,14 +96,20 @@ complete: 11
 
 
 def notify_battery(msb, lsb):
+    print(msb)
+    print(lsb)
     if msb == '00' and lsb == '01':
-        BatteryAlert.BatteryAlert.sendBatteryFaultAlert()
+        BatteryAlert.sendBatteryFaultAlert()
+        print("fault sent")
     elif msb == '01' and lsb == '00':
-        BatteryAlert.BatteryAlert.sendBatteryChargingAlert()
+        BatteryAlert.sendBatteryChargingAlert()
+        print("charge sent")
     elif msb == '00' and lsb == '00':
-        BatteryAlert.BatteryAlert.sendLowBatteryAlert()
+        BatteryAlert.sendLowBatteryAlert()
+        print("low sent")
     elif msb == '01' and lsb == '01':
-        BatteryAlert.BatteryAlert.sendFullBatteryAlert()
+        BatteryAlert.sendFullBatteryAlert()
+        print("full sent")
 
 
 if __name__ == '__main__':

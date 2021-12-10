@@ -20,6 +20,7 @@ from SMSAlert.BatteryAlert import BatteryAlert
 import FallDetection.DataParsing as parse
 from posixpath import split
 from bluepy.btle import UUID, Peripheral, DefaultDelegate
+import bluepy
 import datetime
 import numpy as np
 import math
@@ -86,7 +87,8 @@ class PiBluetoothDelegate(DefaultDelegate):
         elif parse.detect_junk(spaced_str) == 0:
             self.stored_data.append(spaced_str)
         elif parse.detect_battery(spaced_str) == 1:
-            parse.notify_battery(spaced_str[10], spaced_str[11])
+            print(spaced_str)
+            parse.notify_battery(hexString[20:22], hexString[22:24])
         else:
             print("invalid data string")
             # print(spaced_str)
@@ -113,20 +115,37 @@ class PiSystem:
 
         if MAIN_DEBUG and TEST_HIGH_BATTERY:
             BatteryAlert.sendFullBatteryAlert()
-
-        self.peripheral = Peripheral(self.MICROCONTROLLER_MAC, "random")
-        delegate = PiBluetoothDelegate(handle_fall=EmergencyAlert.sendEmergencyAlert)
-        self.peripheral.setDelegate(delegate)
-
-        self.svc = self.peripheral.getServiceByUUID(self.SERVICE_UUID)
-        self.ch = self.svc.getCharacteristics()[0]
-        self.peripheral.writeCharacteristic(int(self.ch.valHandle) + 1, b'\x01\x00')
+        
+        try:
+            self.peripheral = Peripheral(self.MICROCONTROLLER_MAC, "random")
+            delegate = PiBluetoothDelegate(handle_fall=EmergencyAlert.sendEmergencyAlert)
+            self.peripheral.setDelegate(delegate)
+            print("Device Connected")
+            
+            self.svc = self.peripheral.getServiceByUUID(self.SERVICE_UUID)
+            self.ch = self.svc.getCharacteristics()[0]
+            self.peripheral.writeCharacteristic(int(self.ch.valHandle) + 1, b'\x01\x00')
+            print("Subscribed to notifications")
+        except bluepy.btle.BTLEDisconnectError as e:
+            print(e)
 
         while True:
-            if self.peripheral.waitForNotifications(1):
-                # handleNotification() was called
-                continue
-
+            try:
+                if self.peripheral.waitForNotifications(1):
+                    # handleNotification() was called
+                    continue
+            except bluepy.btle.BTLEDisconnectError as e:
+                print(e)
+                print("ERROR OCCURED DISCONNECT")
+                self.peripheral = Peripheral(self.MICROCONTROLLER_MAC, "random")
+                delegate = PiBluetoothDelegate(handle_fall=EmergencyAlert.sendEmergencyAlert)
+                self.peripheral.setDelegate(delegate)
+                print("Device Connected")
+                
+                self.svc = self.peripheral.getServiceByUUID(self.SERVICE_UUID)
+                self.ch = self.svc.getCharacteristics()[0]
+                self.peripheral.writeCharacteristic(int(self.ch.valHandle) + 1, b'\x01\x00')
+                print("Subscribed to notifications")
 
 if __name__ == '__main__':
     PiSystem().main()
