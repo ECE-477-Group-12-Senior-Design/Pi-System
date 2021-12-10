@@ -7,8 +7,6 @@
 # December 01, 2021
 #
 
-import os
-from SMSAlert.Constants import *
 from SMSAlert.NotificationManager import *
 
 
