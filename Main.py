@@ -143,7 +143,9 @@ class PiSystem:
                 print("ERROR: " + str(e) + " ...Attempting to reconnect")
                 BluetoothAlert.sendDisconnectedAlert()
             except Exception as err:
-                print(err)        
+                print(err)
+                BluetoothAlert.sendUnexpectedAlert(str(err))
+
 
 if __name__ == '__main__':
     PiSystem().main()
