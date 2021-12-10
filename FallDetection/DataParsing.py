@@ -9,6 +9,7 @@ Acceleration is set at +/- 4g (can be changed if necessary)
 
 import numpy as np
 import matplotlib.pyplot as plt
+from SMSAlert import BatteryAlert
 
 
 # generates np array for easy parsing
@@ -85,8 +86,24 @@ def detect_battery(spaced_str):
         return 0
 
 
-def notify_battery(spaced_str):
+'''
+battery codes: MSB LSB
+fault: 01
+charging: 10
+low: 00
+complete: 11
+'''
 
+
+def notify_battery(msb, lsb):
+    if msb == '00' and lsb == '01':
+        BatteryAlert.BatteryAlert.sendBatteryFaultAlert()
+    elif msb == '01' and lsb == '00':
+        BatteryAlert.BatteryAlert.sendBatteryChargingAlert()
+    elif msb == '00' and lsb == '00':
+        BatteryAlert.BatteryAlert.sendLowBatteryAlert()
+    elif msb == '01' and lsb == '01':
+        BatteryAlert.BatteryAlert.sendFullBatteryAlert()
 
 
 if __name__ == '__main__':
