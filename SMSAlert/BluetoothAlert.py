@@ -21,3 +21,8 @@ class BluetoothAlert:
     def sendDisconnectedAlert() -> None:
         notificationManager = NotificationManager()
         notificationManager.send_message(TWILIO_BLUETOOTH_DISCONNECTED_SMS)
+
+    @staticmethod
+    def sendUnexpectedAlert(message: str) -> None:
+        notificationManager = NotificationManager()
+        notificationManager.send_message(f'Brace for Impact encountered an unexpected error:{message}')
