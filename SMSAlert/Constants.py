@@ -22,6 +22,11 @@ TWILIO_FORMATTED_TEST_SMS = 'Hi, {}. This is a test message from Brace for Impac
 TWILIO_FORMATTED_EMERGENCY_SMS = '*** EMERGENCY: {} has fallen. Please contact them and/or emergency services immediately.'
 TWILIO_FORMATTED_LOW_BATTERY_SMS = 'Hi, {contact_name}. {user_name}\'s fall detection bracelet is running low on battery. Please have them charge the device as soon as possible.'
 TWILIO_FORMATTED_FULL_BATTERY_SMS = 'Hi, {contact_name}. {user_name}\'s fall detection bracelet is charged. Please have them wear the bracelet again.'
+TWILIO_FORMATTED_CHARGING_BATTERY_SMS = 'Hi, {contact_name}. {user_name}\'s fall detection bracelet is charging. It\'ll be ready for reuse shortly.'
+TWILIO_FORMATTED_BATTERY_FAULT_SMS = 'Hi, {contact_name}. {user_name}\'s fall detection bracelet has detected a charging fault. Please disconnect the charging cable from the device and try again. If issues persist, please contact our support center.'
+
+TWILIO_BLUETOOTH_CONNECTED_SMS = 'Brace for Impact has connected to the base station.'
+TWILIO_BLUETOOTH_DISCONNECTED_SMS = 'Brace for Impact has disconnected from the base station. Please attempt reconnection. If issues persist, please contact our support center.'
 
 # 
 # ---------- GUI ---------- 

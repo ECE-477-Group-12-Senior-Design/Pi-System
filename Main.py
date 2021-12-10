@@ -67,29 +67,32 @@ class PiBluetoothDelegate(DefaultDelegate):
             parse.plot_data(all_axes[0], 'x_accel.png')
             parse.plot_data(all_axes[1], 'y_accel.png')
             parse.plot_data(all_axes[2], str(str(dt)[22:]) + 'z_accel.png')
-            
-            combined_x_y_z = [all_axes[0], all_axes[1], all_axes[2]] # TODO: Only accel
-                        
+
+            combined_x_y_z = [all_axes[0], all_axes[1], all_axes[2]]  # TODO: Only accel
+
             did_fall = determine_if_fall(combined_x_y_z)
-            
+
             if did_fall:
                 pass
                 # Detected a fall
                 # TODO: Uncomment next line to send text messages
                 # self.handle_fall()
-            
+
             print(f"FALL?: {did_fall}")
 
-            
             # determine_if_fall([])
             # Send stored_data array to Fall Detection Algo
             self.stored_data = []
         elif parse.detect_junk(spaced_str) == 0:
             self.stored_data.append(spaced_str)
+        elif parse.detect_battery(spaced_str) == 1:
+            parse.notify_battery(spaced_str[10], spaced_str[11])
+        else:
+            print("invalid data string")
+            # print(spaced_str)
 
 
 class PiSystem:
-
     # Bluetooth
     SERVICE_UUID = '0000f00d-1212-efde-1523-785fef13d123'
     CHARACTERISTIC_UUID = '0000beef-1212-efde-1523-785fef13d123'
@@ -110,7 +113,7 @@ class PiSystem:
 
         if MAIN_DEBUG and TEST_HIGH_BATTERY:
             BatteryAlert.sendFullBatteryAlert()
-        
+
         self.peripheral = Peripheral(self.MICROCONTROLLER_MAC, "random")
         delegate = PiBluetoothDelegate(handle_fall=EmergencyAlert.sendEmergencyAlert)
         self.peripheral.setDelegate(delegate)
@@ -118,7 +121,7 @@ class PiSystem:
         self.svc = self.peripheral.getServiceByUUID(self.SERVICE_UUID)
         self.ch = self.svc.getCharacteristics()[0]
         self.peripheral.writeCharacteristic(int(self.ch.valHandle) + 1, b'\x01\x00')
-        
+
         while True:
             if self.peripheral.waitForNotifications(1):
                 # handleNotification() was called
@@ -127,4 +130,3 @@ class PiSystem:
 
 if __name__ == '__main__':
     PiSystem().main()
-

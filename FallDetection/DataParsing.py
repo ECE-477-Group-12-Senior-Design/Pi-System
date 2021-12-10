@@ -9,6 +9,7 @@ Acceleration is set at +/- 4g (can be changed if necessary)
 
 import numpy as np
 import matplotlib.pyplot as plt
+from SMSAlert import BatteryAlert
 
 
 # generates np array for easy parsing
@@ -64,14 +65,45 @@ def plot_data(res, png_name):
 
 def detect_junk(spaced_str):
     if spaced_str.count('0a') > 3:
-        print("A GLITCH")
+        # print("A GLITCH")
         return 1
     elif spaced_str.count('0b') > 3:
-        print("B GLITCH")
+        # print("B GLITCH")
+        return 1
+    elif spaced_str.count('0a') == 2:
+        # print("NO GLITCH")
+        return 0
+    elif spaced_str.count('0b') == 2:
+        return 0
+    else:
+        return 1
+
+
+def detect_battery(spaced_str):
+    if spaced_str.count('0c') == 8 and spaced_str.count('0b') == 10:
         return 1
     else:
-        print("NO GLITCH")
         return 0
+
+
+'''
+battery codes: MSB LSB
+fault: 01
+charging: 10
+low: 00
+complete: 11
+'''
+
+
+def notify_battery(msb, lsb):
+    if msb == '00' and lsb == '01':
+        BatteryAlert.BatteryAlert.sendBatteryFaultAlert()
+    elif msb == '01' and lsb == '00':
+        BatteryAlert.BatteryAlert.sendBatteryChargingAlert()
+    elif msb == '00' and lsb == '00':
+        BatteryAlert.BatteryAlert.sendLowBatteryAlert()
+    elif msb == '01' and lsb == '01':
+        BatteryAlert.BatteryAlert.sendFullBatteryAlert()
 
 
 if __name__ == '__main__':
