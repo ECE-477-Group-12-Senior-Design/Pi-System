@@ -64,14 +64,29 @@ def plot_data(res, png_name):
 
 def detect_junk(spaced_str):
     if spaced_str.count('0a') > 3:
-        print("A GLITCH")
+        # print("A GLITCH")
         return 1
     elif spaced_str.count('0b') > 3:
-        print("B GLITCH")
+        # print("B GLITCH")
+        return 1
+    elif spaced_str.count('0a') == 2:
+        # print("NO GLITCH")
+        return 0
+    elif spaced_str.count('0b') == 2:
+        return 0
+    else:
+        return 1
+
+
+def detect_battery(spaced_str):
+    if spaced_str.count('0c') == 8 and spaced_str.count('0b') == 10:
         return 1
     else:
-        print("NO GLITCH")
         return 0
+
+
+def notify_battery(spaced_str):
+
 
 
 if __name__ == '__main__':
